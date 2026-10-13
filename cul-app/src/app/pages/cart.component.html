@@ -1,0 +1,155 @@
+@if (error()) { <p class="error-banner">{{ error() }}</p> }
+@if (cart.items().length) {
+  <div class="cart-phone-bar">
+    <a class="icon-btn" routerLink="/shop" aria-label="Back to shop">
+      <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"></path></svg>
+    </a>
+    <h1>My Bag ({{ cart.count() }} {{ cart.count() === 1 ? 'Item' : 'Items' }})</h1>
+    <a class="icon-btn" routerLink="/wishlist" aria-label="Wishlist">
+      <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19.4s-6.4-4-6.4-8.2A3.5 3.5 0 0 1 12 8.3a3.5 3.5 0 0 1 6.4 2.9c0 4.2-6.4 8.2-6.4 8.2z"></path></svg>
+    </a>
+  </div>
+
+  <div class="cart-board">
+    <div class="cart-main">
+      <form class="pin-bar" (submit)="checkPin($event)">
+        <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"></path><circle cx="12" cy="11" r="2"></circle></svg>
+        <input
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          autocomplete="postal-code"
+          placeholder="Enter PIN code for a delivery estimate"
+          [value]="pin()"
+          (input)="pin.set($any($event.target).value)"
+          aria-label="PIN code"
+        />
+        <button type="submit" [disabled]="quoting()">{{ quoting() ? 'Checking' : 'Check' }}</button>
+      </form>
+      @if (quote()) { <p class="pin-note">{{ quote() }}</p> }
+
+      @if (offer(); as deal) {
+        <section class="offer-card">
+          <div>
+            <p class="offer-kicker">Best offer for you</p>
+            <p>
+              <strong>{{ deal.code }}</strong>
+              @if (deal.ready) {
+                · {{ deal.detail }} when you apply it at checkout
+              } @else {
+                · Add items worth {{ deal.shortfall | inr }} for {{ deal.detail }}
+              }
+            </p>
+            <a routerLink="/checkout">Apply at checkout</a>
+          </div>
+          <a class="offer-add" routerLink="/shop">Add item</a>
+        </section>
+      }
+
+      <ul class="bag-lines">
+        @for (line of cart.items(); track line.variantId) {
+          <li>
+            <a class="bag-photo" [routerLink]="['/p', line.slug]">
+              @if (line.imageUrl) { <img [src]="line.imageUrl" [alt]="line.name" /> }
+            </a>
+            <div class="bag-copy">
+              <p class="bag-brand">ChooseUrLook</p>
+              <a [routerLink]="['/p', line.slug]"><strong>{{ line.name }}</strong></a>
+              @if (line.available > 0 && line.available <= 3) {
+                <p class="hurry">Only {{ line.available }} left</p>
+              }
+              <p class="ships">Ships across India</p>
+              <div class="bag-picks">
+                @if (line.size) { <span>Size : {{ line.size }}</span> }
+                @if (line.color) { <span>{{ line.color }}</span> }
+                <label>
+                  Qty :
+                  <select [value]="line.quantity" (change)="update(line.variantId, $any($event.target).value)" [attr.aria-label]="'Quantity for ' + line.name">
+                    @for (qty of qtys; track qty) {
+                      <option [value]="qty">{{ qty }}</option>
+                    }
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="bag-money">
+              <button type="button" class="bag-remove" (click)="remove(line.variantId)" [attr.aria-label]="'Remove ' + line.name">×</button>
+              <p class="now">{{ line.unitPrice * line.quantity | inr }}</p>
+              @if (lineSaved(line) > 0) {
+                <p class="was">{{ lineMrp(line) | inr }}</p>
+                <p class="saved">You saved {{ lineSaved(line) | inr }}</p>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <aside class="price-card" id="price-summary">
+      <div class="price-head">
+        <h2>Price summary</h2>
+        <button type="button" (click)="summaryOpen.set(!summaryOpen())" [attr.aria-expanded]="summaryOpen()" aria-label="Toggle price details">
+          <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" [attr.data-open]="summaryOpen()"><path d="m6 14 6-6 6 6"></path></svg>
+        </button>
+      </div>
+      <p class="price-row total"><span>Total</span><span>{{ payable() | inr }}</span></p>
+      @if (summaryOpen()) {
+        <p class="price-row"><span>Total MRP (incl. of taxes)</span><span>{{ mrp() | inr }}</span></p>
+        @if (saved() > 0) {
+          <p class="price-row discount"><span>Bag discount (incl. of GST)</span><span>−{{ saved() | inr }}</span></p>
+        }
+        <p class="price-row"><span>Delivery fee</span><span>{{ shipping() === 0 ? 'Free' : (shipping() | inr) }}</span></p>
+      }
+      @if (shipping() === 0) {
+        <p class="ship-win">You get free delivery on this order</p>
+      } @else {
+        <p class="ship-gap">Add {{ shipGap() | inr }} more for free delivery. Otherwise delivery is {{ shipping() | inr }}.</p>
+      }
+      <a class="btn proceed" routerLink="/checkout">Proceed</a>
+      <ul class="trust-row">
+        <li>
+          <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.2v5.3c0 4.2 2.8 7.2 7 8.5 4.2-1.3 7-4.3 7-8.5V6.2L12 3.5z"></path><path d="m9 12 2 2 4-4"></path></svg>
+          <span>Checked pieces</span>
+        </li>
+        <li>
+          <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="9" rx="1.5"></rect><path d="M8 10V8a4 4 0 0 1 8 0v2"></path></svg>
+          <span>Secure checkout</span>
+        </li>
+        <li>
+          <a routerLink="/returns">
+            <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"></path><path d="M4.5 4.5v4h4"></path></svg>
+            <span>Easy returns</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+  </div>
+
+  @if (saved() > 0) {
+    <p class="save-strip">You are saving {{ saved() | inr }} on this order</p>
+  }
+  <div class="bag-dock">
+    <div>
+      <strong>{{ payable() | inr }}</strong>
+      <button type="button" (click)="showDetails()">View details</button>
+    </div>
+    <a class="btn proceed" routerLink="/checkout">Proceed</a>
+  </div>
+} @else {
+  <section class="empty-bag">
+    <svg viewBox="0 0 160 180" aria-hidden="true">
+      <path class="string" d="M78 78c-8-18-6-36 8-52" />
+      <ellipse class="balloon" cx="96" cy="28" rx="18" ry="22" />
+      <circle class="eye" cx="90" cy="26" r="1.4" />
+      <circle class="eye" cx="100" cy="26" r="1.4" />
+      <path class="smile" d="M92 33c2.2 2 6 2 8.2 0" />
+      <path class="bag" d="M48 78h64l-6 78H54L48 78z" />
+      <path class="handle" d="M66 78V66a14 14 0 0 1 28 0v12" />
+      <circle class="eye" cx="72" cy="112" r="2" />
+      <circle class="eye" cx="90" cy="112" r="2" />
+    </svg>
+    <p>Hey, your bag feels so light!</p>
+    <p class="fine">Let's add some items in your bag</p>
+    <a class="btn" routerLink="/shop">Start shopping</a>
+  </section>
+}

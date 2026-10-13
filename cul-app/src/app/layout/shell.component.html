@@ -1,0 +1,91 @@
+<a class="skip" href="#main">Skip to content</a>
+<p class="announcement">Free shipping on orders over ₹1,999 · Cycling, running and everyday sun</p>
+@if (!supabase.configured) {
+  <p class="setup-banner">Add your Supabase URL and anon key in <code>src/environments/environment.ts</code>, then run the SQL files in the Supabase SQL editor.</p>
+}
+<header class="site-header" [class.on-account]="onAccount()">
+  <div class="header-bar">
+    <div class="header-start">
+      <button class="icon-btn menu-btn" type="button" (click)="menuOpen.set(!menuOpen())" [attr.aria-expanded]="menuOpen()" [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'">
+        @if (menuOpen()) {
+          <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        } @else {
+          <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h12"></path></svg>
+        }
+      </button>
+      <span class="account-title">My Account</span>
+      <a class="eyes-mark" routerLink="/" (click)="closeMenu()" aria-label="ChooseUrLook">
+        <svg class="eyes-logo" viewBox="0 0 54 26" aria-hidden="true">
+          <circle cx="12" cy="13" r="10" />
+          <path d="M32 9.2c4.4-5.4 13.6-4.2 15.2 2.4 1.1 4.6-1.6 9-6.4 10.2-6.4 1.6-12.6-3-12.2-9 .2-1.5 1.2-2.8 3.4-3.6z" />
+          <circle class="pupil" cx="9.4" cy="12.2" r="3.15" />
+          <ellipse class="pupil" cx="40.6" cy="14.6" rx="2.9" ry="1.55" />
+        </svg>
+      </a>
+    </div>
+    <a class="logo" routerLink="/" (click)="closeMenu()">Choose<span>Ur</span>Look</a>
+    <nav class="primary-nav" [class.open]="menuOpen()">
+      <a routerLink="/shop" routerLinkActive="active" (click)="closeMenu()">Shop</a>
+      <a routerLink="/c/cycling" routerLinkActive="active" (click)="closeMenu()">Cycling</a>
+      <a routerLink="/c/running" routerLinkActive="active" (click)="closeMenu()">Running</a>
+      <a routerLink="/c/accessories" routerLinkActive="active" (click)="closeMenu()">Accessories</a>
+      <a routerLink="/c/ladies" routerLinkActive="active" (click)="closeMenu()">Ladies</a>
+      <a class="drawer-link" routerLink="/shop" (click)="closeMenu()">Search</a>
+      @if (auth.user()) {
+        <a class="drawer-link" routerLink="/account" (click)="closeMenu()">Account</a>
+        @if (auth.isAdmin()) {
+          <a class="drawer-link" routerLink="/admin" (click)="closeMenu()">Admin</a>
+        }
+      } @else {
+        <a class="drawer-link" routerLink="/auth/login" (click)="closeMenu()">Sign in</a>
+      }
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn" routerLink="/shop" (click)="closeMenu()" aria-label="Search">
+        <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.25"></circle><path d="M16 16.5 20 20.5"></path></svg>
+      </a>
+      <a class="icon-btn saved-btn" routerLink="/wishlist" (click)="closeMenu()" aria-label="Wishlist">
+        <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19.4s-6.4-4-6.4-8.2A3.5 3.5 0 0 1 12 8.3a3.5 3.5 0 0 1 6.4 2.9c0 4.2-6.4 8.2-6.4 8.2z"></path></svg>
+        @if (wishlist.count()) { <span class="count">{{ wishlist.count() }}</span> }
+      </a>
+      @if (auth.user()) {
+        <a class="icon-btn wide-only" routerLink="/account" (click)="closeMenu()">Account</a>
+        @if (auth.isAdmin()) {
+          <a class="icon-btn wide-only" routerLink="/admin" (click)="closeMenu()">Admin</a>
+        }
+      } @else {
+        <a class="icon-btn wide-only" routerLink="/auth/login" (click)="closeMenu()">Sign in</a>
+      }
+      <a class="icon-btn bag" routerLink="/cart" (click)="closeMenu()" aria-label="Bag">
+        <svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.2h11l-.85 11.2H7.35L6.5 8.2z"></path><path d="M9 8.2V6.7A3 3 0 0 1 12 3.7a3 3 0 0 1 3 3v1.5"></path></svg>
+        @if (cart.count()) { <span class="count">{{ cart.count() }}</span> }
+      </a>
+    </div>
+  </div>
+</header>
+<main id="main">
+  <router-outlet />
+</main>
+<footer class="site-footer">
+  <div class="footer-brand">
+    <p class="logo">Choose<span>Ur</span>Look</p>
+    <p>Cycling and running sunglasses, with accessories and ladies looks, edited in India.</p>
+  </div>
+  <div>
+    <p class="footer-label">Visit</p>
+    <a routerLink="/shop">All pieces</a>
+    <a routerLink="/about">About</a>
+    <a routerLink="/shipping">Shipping</a>
+    <a routerLink="/returns">Returns</a>
+  </div>
+  <div>
+    <p class="footer-label">Care</p>
+    <a routerLink="/privacy">Privacy</a>
+    <a routerLink="/terms">Terms</a>
+    <a routerLink="/account">Your orders</a>
+  </div>
+</footer>
+<p class="legal">© {{ year }} ChooseUrLook. Prices in INR, GST included.</p>
+@if (toast.text(); as note) {
+  <p class="toast" role="status">{{ note }}</p>
+}

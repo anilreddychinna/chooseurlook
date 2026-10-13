@@ -1,0 +1,62 @@
+<section class="page-intro">
+  <p class="eyebrow">Checkout</p>
+  <h1>Delivery and payment</h1>
+</section>
+@if (!auth.user()) {
+  <p>Sign in so this order stays on your account.</p>
+  <a class="btn" routerLink="/auth/login" [queryParams]="{ returnUrl: '/checkout' }">Sign in</a>
+} @else if (!cart.items().length) {
+  <p class="empty">Your bag is empty.</p>
+  <a class="btn" routerLink="/shop">Shop</a>
+} @else {
+  <div class="cart-layout">
+    <form class="stack" [formGroup]="form" (ngSubmit)="place()">
+      <fieldset>
+        <legend>Address</legend>
+        @for (address of addresses(); track address.id) {
+          <label class="choice">
+            <input type="radio" name="address" [value]="address.id" [checked]="addressId() === address.id" (change)="addressId.set(address.id); adding.set(false)" />
+            <span>{{ address.recipient }}, {{ address.line1 }}, {{ address.city }} {{ address.postal_code }}</span>
+          </label>
+        }
+        <button class="text-btn" type="button" (click)="adding.set(true)">Use a new address</button>
+        @if (adding() || !addresses().length) {
+          <div class="form-grid">
+            <label>Recipient<input formControlName="recipient" /></label>
+            <label>Phone<input formControlName="phone" inputmode="numeric" /></label>
+            <label class="wide">Address<input formControlName="line1" /></label>
+            <label class="wide">Landmark<input formControlName="line2" /></label>
+            <label>City<input formControlName="city" /></label>
+            <label>State
+              <select formControlName="state">
+                <option value="">Select</option>
+                @for (state of states; track state) { <option [value]="state">{{ state }}</option> }
+              </select>
+            </label>
+            <label>PIN code<input formControlName="postal_code" inputmode="numeric" /></label>
+          </div>
+        }
+        <button class="text-btn" type="button" (click)="checkPin()">Check this PIN code</button>
+        @if (quote()) { <p class="fine">{{ quote() }}</p> }
+      </fieldset>
+
+      <label>Coupon<input [value]="coupon()" (input)="coupon.set($any($event.target).value)" placeholder="WELCOME10" /></label>
+      <fieldset>
+        <legend>Payment</legend>
+        <label class="choice"><input type="radio" name="pay" [checked]="method() === 'razorpay'" (change)="method.set('razorpay')" /> Razorpay</label>
+        <label class="choice"><input type="radio" name="pay" [checked]="method() === 'cod'" (change)="method.set('cod')" /> Cash on delivery</label>
+      </fieldset>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <button class="btn" type="submit" [disabled]="busy()">{{ busy() ? 'Placing order…' : 'Place order' }}</button>
+    </form>
+    <aside class="summary">
+      <h2>To pay</h2>
+      @for (line of cart.items(); track line.variantId) {
+        <p><span>{{ line.name }} × {{ line.quantity }}</span><span>{{ line.unitPrice * line.quantity | inr }}</span></p>
+      }
+      <p><span>Shipping estimate</span><span>{{ previewShipping() | inr }}</span></p>
+      <p><span>Subtotal</span><span>{{ cart.subtotal() | inr }}</span></p>
+      <p class="fine">The payable total is recalculated from the database when the order is created. Closing Razorpay does not mark an order paid.</p>
+    </aside>
+  </div>
+}

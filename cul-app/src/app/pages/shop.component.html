@@ -1,0 +1,56 @@
+<section class="page-intro">
+  <p class="eyebrow">{{ listing()?.category?.name || 'The edit' }}</p>
+  <h1>{{ listing()?.category?.name || 'Shop' }}</h1>
+  @if (listing()?.category?.description) {
+    <p>{{ listing()?.category?.description }}</p>
+  }
+</section>
+
+@if (listing()?.error) {
+  <p class="error-banner">{{ listing()?.error }}</p>
+}
+
+<div class="shop-layout">
+  <form class="filters" (ngSubmit)="apply()">
+    <label>Search<input name="q" [(ngModel)]="q" placeholder="Dress, linen, oil" /></label>
+    <label>Sort
+      <select name="sort" [(ngModel)]="sort">
+        <option value="newest">Newest</option>
+        <option value="price_asc">Price, low to high</option>
+        <option value="price_desc">Price, high to low</option>
+        <option value="name">Name</option>
+      </select>
+    </label>
+    <label>Min price<input name="min" [ngModel]="min" (input)="min = digitsOnly($event)" inputmode="numeric" pattern="[0-9]*" autocomplete="off" /></label>
+    <label>Max price<input name="max" [ngModel]="max" (input)="max = digitsOnly($event)" inputmode="numeric" pattern="[0-9]*" autocomplete="off" /></label>
+    <button class="btn" type="submit">Apply</button>
+    @if (listing()?.categories?.length) {
+      <div class="filter-links">
+        <a routerLink="/shop" [queryParams]="{ q: q || null }">All</a>
+        @for (category of listing()?.categories ?? []; track category.id) {
+          <a [routerLink]="['/c', category.slug]" [queryParams]="{ q: q || null }">{{ category.name }}</a>
+        }
+      </div>
+    }
+  </form>
+
+  <div>
+    <p class="result-count">{{ listing()?.total ?? 0 }} pieces</p>
+    <div class="product-grid">
+      @for (product of listing()?.items ?? []; track product.id) {
+        <app-product-card [product]="product" />
+      } @empty {
+        <p class="empty">Nothing matches this filter yet.</p>
+      }
+    </div>
+    @if (listing(); as current) {
+      @if (pages(current).length > 1) {
+        <nav class="pager" aria-label="Pages">
+          @for (page of pages(current); track page) {
+            <a [routerLink]="[]" [queryParams]="{ page: page === 1 ? null : page }" queryParamsHandling="merge" [class.current]="page === current.page">{{ page }}</a>
+          }
+        </nav>
+      }
+    }
+  </div>
+</div>

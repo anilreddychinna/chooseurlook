@@ -1,0 +1,98 @@
+@if (payload()?.error) {
+  <p class="error-banner">{{ payload()?.error }}</p>
+}
+@if (product(); as item) {
+  <article class="product-page">
+    <div class="gallery">
+      @if (item.images.length > 1) {
+        <div class="thumbs">
+          @for (image of item.images; track image.path; let index = $index) {
+            <button type="button" (click)="showImage(index)" [class.current]="index === imageIndex()" [attr.aria-label]="'View image ' + (index + 1)">
+              <img [src]="image.url" [alt]="image.alt" />
+            </button>
+          }
+        </div>
+      }
+      <div class="model-stage">
+        @if (item.images[imageIndex()]; as image) {
+          <img [src]="image.url" [alt]="image.alt" />
+        } @else {
+          <div class="placeholder-image tall"></div>
+        }
+      </div>
+    </div>
+    <div class="product-buy">
+      <p class="eyebrow">
+        @if (item.categorySlug) {
+          <a [routerLink]="['/c', item.categorySlug]">{{ item.categoryName }}</a>
+        }
+      </p>
+      <div class="buy-head">
+        <h1>{{ item.name }}</h1>
+        @if (wish(); as saved) {
+          <app-piece-actions [product]="saved" [inline]="true" />
+        }
+      </div>
+      <p class="price large">
+        {{ (selected()?.price ?? item.price) | inr }}
+        @if (item.compareAtPrice) { <s>{{ item.compareAtPrice | inr }}</s> }
+      </p>
+      <app-stars [average]="reviewSummary()?.average ?? item.ratingAverage" [count]="reviewSummary()?.count ?? item.reviewCount" />
+      <p class="lede">{{ item.description }}</p>
+
+      @if (colors().length) {
+        <fieldset>
+          <legend>Colour</legend>
+          <div class="choice-row">
+            @for (color of colors(); track color) {
+              <button type="button" [class.current]="selected()?.color === color" (click)="chooseColor(color)">{{ color || 'Default' }}</button>
+            }
+          </div>
+        </fieldset>
+      }
+      @if (showSizes()) {
+        <fieldset>
+          <legend>Size</legend>
+          <div class="choice-row">
+            @for (size of sizes(); track size) {
+              @if (size) {
+                <button type="button" [class.current]="selected()?.size === size" (click)="chooseSize(size)">{{ size }}</button>
+              }
+            }
+          </div>
+        </fieldset>
+      }
+
+      <p class="stock">@if ((selected()?.available ?? 0) > 0) { {{ selected()?.available }} in stock } @else { Out of stock }</p>
+      <label class="qty">Quantity
+        <input type="number" min="1" max="10" [value]="quantity()" (input)="quantity.set($any($event.target).value)" />
+      </label>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <button class="btn" type="button" (click)="add()" [disabled]="(selected()?.available ?? 0) < 1">Add to bag</button>
+      <p class="fine">SKU {{ selected()?.sku }}. GST is included. Shipping is confirmed at checkout.</p>
+    </div>
+  </article>
+
+  <app-reviews
+    [productId]="item.id"
+    [slug]="item.slug"
+    [initial]="payload()?.reviews ?? null"
+    (summary)="reviewSummary.set($event)"
+  />
+
+  @if (payload()?.related?.length) {
+    <section class="section">
+      <div class="section-head"><h2>Worn with</h2></div>
+      <div class="product-grid">
+        @for (related of payload()?.related ?? []; track related.id) {
+          <app-product-card [product]="related" />
+        }
+      </div>
+    </section>
+  }
+} @else if (!payload()?.error) {
+  <section class="page-intro">
+    <h1>This piece is not in the shop.</h1>
+    <a class="btn" routerLink="/shop">Back to the shop</a>
+  </section>
+}

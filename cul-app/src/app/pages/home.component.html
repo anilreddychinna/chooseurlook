@@ -1,0 +1,55 @@
+<section class="hero">
+  <img src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1800&q=80" alt="Cyclist riding in hard sunlight" />
+  <div class="hero-copy">
+    <p class="eyebrow">Sun, on purpose</p>
+    <h1>Light on the road. Sharp on the look.</h1>
+    <p>Cycling shields and running wraps first, then the accessories and ladies pieces you keep for after.</p>
+    <div class="hero-actions">
+      <a class="btn" routerLink="/c/cycling">Cycling sun</a>
+      <a class="btn btn-ghost" routerLink="/c/running">Running sun</a>
+    </div>
+  </div>
+</section>
+
+@if (data()?.error) {
+  <p class="error-banner">{{ data()?.error }}</p>
+}
+
+<section class="section">
+  <div class="section-head">
+    <h2>Categories</h2>
+    <a routerLink="/shop">View all</a>
+  </div>
+  <div class="category-grid">
+    @for (category of data()?.categories ?? []; track category.id) {
+      <a class="category-card" [routerLink]="['/c', category.slug]">
+        @if (category.imageUrl) {
+          <img [src]="category.imageUrl" [alt]="category.name" />
+        }
+        <span><small>Shop</small>{{ category.name }}</span>
+      </a>
+    } @empty {
+      <p class="empty">Categories appear here after the catalogue SQL has been applied.</p>
+    }
+  </div>
+</section>
+
+<section class="promo">
+  <div>
+    <p class="eyebrow">Welcome</p>
+    <h2>10% off your first order over ₹999</h2>
+    <p>Use code <strong>WELCOME10</strong> at checkout. The discount is calculated on the server from the live price.</p>
+  </div>
+  <a class="btn" routerLink="/shop">Use the code</a>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>The edit</h2>
+  </div>
+  <div class="product-grid">
+    @for (product of data()?.featured ?? []; track product.id) {
+      <app-product-card [product]="product" />
+    }
+  </div>
+</section>

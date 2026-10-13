@@ -1,0 +1,28 @@
+<section class="auth-card">
+  <p class="eyebrow">Account</p>
+  @switch (mode()) {
+    @case ('register') { <h1>Create an account</h1> }
+    @case ('forgot') { <h1>Reset your password</h1> }
+    @case ('reset') { <h1>Choose a new password</h1> }
+    @default { <h1>Sign in</h1> }
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" class="stack">
+    @if (mode() === 'register') {
+      <label>Name<input formControlName="displayName" autocomplete="name" /></label>
+    }
+    @if (mode() !== 'reset') {
+      <label>Email<input formControlName="email" type="email" autocomplete="email" /></label>
+    }
+    @if (mode() !== 'forgot') {
+      <label>Password<input formControlName="password" type="password" autocomplete="current-password" /></label>
+    }
+    @if (error()) { <p class="form-error">{{ error() }}</p> }
+    @if (message()) { <p class="fine">{{ message() }}</p> }
+    <button class="btn" type="submit" [disabled]="busy()">Continue</button>
+  </form>
+  @if (mode() === 'login') {
+    <p><a routerLink="/auth/register">Create an account</a> · <a routerLink="/auth/forgot">Forgot password</a></p>
+  } @else {
+    <p><a routerLink="/auth/login">Back to sign in</a></p>
+  }
+</section>

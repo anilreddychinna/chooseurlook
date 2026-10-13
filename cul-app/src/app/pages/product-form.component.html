@@ -1,0 +1,62 @@
+<p><a routerLink="/admin/products">All products</a></p>
+<h2>{{ productId ? 'Edit product' : 'New product' }}</h2>
+<form class="stack" [formGroup]="form" (ngSubmit)="save()">
+  <div class="form-grid">
+    <label>Name<input formControlName="name" (input)="syncSlug()" /></label>
+    <label>Slug<input formControlName="slug" (input)="markSlug()" /></label>
+    <label>Price<input formControlName="price" type="number" min="0" /></label>
+    <label>Compare-at<input formControlName="compareAtPrice" type="number" min="0" /></label>
+    <label>Category
+      <select formControlName="categoryId">
+        <option value="">None</option>
+        @for (category of categories(); track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+      </select>
+    </label>
+    <label>Status
+      <select formControlName="status">
+        <option value="draft">Draft</option>
+        <option value="published">Published</option>
+        <option value="archived">Archived</option>
+      </select>
+    </label>
+    <label class="wide">Description<textarea formControlName="description" rows="4"></textarea></label>
+    <label>SEO title<input formControlName="seoTitle" /></label>
+    <label>SEO description<input formControlName="seoDescription" /></label>
+  </div>
+
+  <h3>Images</h3>
+  <div class="thumbs">
+    @for (photo of photos(); track photo.path; let index = $index) {
+      <figure>
+        <img [src]="images.imageUrl(photo.path)" [alt]="photo.alt" />
+        <button class="text-btn" type="button" (click)="removePhoto(index)">Remove</button>
+      </figure>
+    }
+  </div>
+  <label>Upload<input type="file" accept="image/*" (change)="onFile($event)" /></label>
+  <label>Or image URL
+    <input #url />
+    <button class="text-btn" type="button" (click)="addImageUrl(url.value); url.value = ''">Add URL</button>
+  </label>
+
+  <h3>Variants</h3>
+  <div formArrayName="variants" class="stack">
+    @for (group of variants.controls; track $index; let index = $index) {
+      <div class="form-grid" [formGroupName]="index">
+        <label>SKU<input formControlName="sku" /></label>
+        <label>Size<input formControlName="size" /></label>
+        <label>Colour<input formControlName="color" /></label>
+        <label>Price override<input formControlName="priceOverride" type="number" /></label>
+        <label>Stock<input formControlName="stock" type="number" min="0" /></label>
+        <label class="choice"><input type="checkbox" formControlName="active" /> Active</label>
+        <button class="text-btn" type="button" (click)="removeVariant(index)">Remove variant</button>
+      </div>
+    }
+  </div>
+  <button class="text-btn" type="button" (click)="addVariant()">Add variant</button>
+  @if (error()) { <p class="form-error">{{ error() }}</p> }
+  <div class="hero-actions">
+    <button class="btn" type="submit" [disabled]="busy()">Save product</button>
+    @if (productId) { <button class="btn btn-ghost" type="button" (click)="remove()">Delete</button> }
+  </div>
+</form>
